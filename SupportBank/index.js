@@ -1,63 +1,21 @@
-var Papa = require('papaparse');
-var _ = require('lodash');
-var readlinesync = require('readline-sync');
-var fs = require('fs')
+let Papa = require('papaparse');
+let _ = require('lodash');
+let readlinesync = require('readline-sync');
+let fs = require('fs')
+let log4js = require('log4js');
+let Transaction = require('./transaction').Transaction;
+let accountLib = require('./account');
 
-function Account(name){
-    this.name = name;
-    this.balance = 0;
-    // Amount positive if transfered from this account
-    this.transfer = function(amount){
-        this.balance -= amount;
-        this.balance = this.balance.toFixed(2);
+log4js.configure({
+    appenders: {
+        file: { type: 'fileSync', filename: 'logs/debug.log' }
+    },
+    categories: {
+        default: { appenders: ['file'], level: 'debug'}
     }
-}
+});
 
-function Transaction(from,to,amount,date,narrative){
-    this.from = from;
-    this.to = to;
-    this.amount = amount;
-    this.date = date;
-    this.narrative = narrative;
-}
-
-function ProcessTransaction(transaction){
-
-    CreateAccountIfMissing(transaction.from);
-    CreateAccountIfMissing(transaction.to);
-
-    let fromAccount = _.filter(accounts,['name', transaction.from])[0];
-    let toAccount = _.filter(accounts,['name', transaction.to])[0];
-
-    fromAccount.transfer(transaction.amount);
-    toAccount.transfer(-transaction.amount);
-
-}
-
-function CreateAccountIfMissing(accountname){
-    if( _.filter(accounts,['name', accountname]).length === 0 ) {
-        accounts.push(new Account(accountname));
-    }
-}
-
-function listTransactions(accountname){
-    console.log('\nOutgoing transactions: \n');
-    for(let i = 0; i<history.length; i++){
-        if(history[i].from === accountname){
-            console.log(' Date: ' + history[i].date + '\n To: ' + history[i].to + '\n Amount: ' + history[i].amount + '\n Narrative: ' + history[i].narrative + '\n');
-        }
-    }
-                
-    console.log('Incoming transactions: \n');
-    for(let i = 0; i<history.length; i++){
-        if(history[i].to === accountname){
-            console.log(' Date: ' + history[i].date + '\n From: ' + history[i].from + '\n Amount: ' + history[i].amount + '\n Narrative: ' + history[i].narrative + '\n');
-        }
-    }
-}
-
-var history = [];   // for storing transactions
-var accounts = [];
+var accounts = {};
 
 fs.readFile('./Transactions2014.csv', 'utf8', function (err,data) {
 
@@ -68,6 +26,8 @@ fs.readFile('./Transactions2014.csv', 'utf8', function (err,data) {
   // Decode data
   var info = Papa.parse(data);
 
+  var id = 0; // Keep track of the next available transaction id
+
   // Make all Transaction objects from decoded data
   for(let i = 1; i < info.data.length; i++){
 
@@ -77,15 +37,28 @@ fs.readFile('./Transactions2014.csv', 'utf8', function (err,data) {
       let narrative = info.data[i][3];
       let amount = info.data[i][4];
 
-      if(from !== undefined && to !== undefined && amount !== undefined){
-          history.push(new Transaction(from,to,amount,date,narrative));
+      if(from && to && amount){
+          if(typeof +amount === 'number'){
+
+            accounts = accountLib.CreateAccountIfMissing(from,accounts);
+            accounts = accountLib.CreateAccountIfMissing(to,accounts);
+
+            accounts[from].transactionHistory[id] = new Transaction(to,amount,date,narrative);
+            accounts[to].transactionHistory[id] = new Transaction(from,-amount,date,narrative);
+            id++;
+
+            accounts[from].ProcessTransaction(id);
+            accounts[to].ProcessTransaction(id);
+          } else{
+              console.log('Invalid amount in line ' + (i+1));
+          }
+      }
+      else{
+          console.log('Line ' + (i+1) + ' could not be processed.');
       }
 
   }
 
-  for(let i = 0; i<history.length; i++){
-      ProcessTransaction(history[i]);
-  }
 
   var command;
   console.log('Available commands: \n 1. List All \n 2. List [Account] \n 3. Exit')
@@ -94,16 +67,12 @@ fs.readFile('./Transactions2014.csv', 'utf8', function (err,data) {
       command = readlinesync.question('Please input command: ');
 
       if(command === 'List All'){
-
-          for(let i = 0; i < accounts.length; i++){
-              console.log(accounts[i].name + ': ' + accounts[i].balance);
+          for(let account in accounts){
+              console.log(account.name + ': ' + account.balance);
           }
-
-      }else if(command.substring(0,6) === 'List [' && command.charAt(command.length-1) === ']'){
-          
+      }else if(command.substring(0,6) === 'List [' && command.charAt(command.length-1) === ']'){         
           let account = command.substring(6,command.length-1);
-          listTransactions(account);
-
+          accounts[account].listTransactions();
       }else if(command !== 'exit'){
           console.log('Invalid command');
       }
