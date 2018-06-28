@@ -6,7 +6,6 @@ var fs = require('fs')
 function Account(name){
     this.name = name;
     this.balance = 0;
-
     // Amount positive if transfered from this account
     this.transfer = function(amount){
         this.balance -= amount;
@@ -24,35 +23,42 @@ function Transaction(from,to,amount,date,narrative){
 
 function ProcessTransaction(transaction){
 
-    // Create missing accounts
-    if( _.filter(accounts,['name', transaction.from]).length === 0 ) {
+    CreateAccountIfMissing(transaction.from);
+    CreateAccountIfMissing(transaction.to);
 
-        accounts.push(new Account(transaction.from));
-
-    }
-
-    if( _.filter(accounts,['name', transaction.to]).length === 0 ) {
-
-        accounts.push(new Account(transaction.to));
-
-    }
-
-    // Find relevant accounts
     let fromAccount = _.filter(accounts,['name', transaction.from])[0];
     let toAccount = _.filter(accounts,['name', transaction.to])[0];
 
-    // Make transfers
     fromAccount.transfer(transaction.amount);
-    toAccount.transfer(transaction.amount);
+    toAccount.transfer(-transaction.amount);
 
 }
 
-// Initialize variable to record transactions
-var history = [];
-// Initialize variable to store accounts in
+function CreateAccountIfMissing(accountname){
+    if( _.filter(accounts,['name', accountname]).length === 0 ) {
+        accounts.push(new Account(accountname));
+    }
+}
+
+function listTransactions(accountname){
+    console.log('\nOutgoing transactions: \n');
+    for(let i = 0; i<history.length; i++){
+        if(history[i].from === accountname){
+            console.log(' Date: ' + history[i].date + '\n To: ' + history[i].to + '\n Amount: ' + history[i].amount + '\n Narrative: ' + history[i].narrative + '\n');
+        }
+    }
+                
+    console.log('Incoming transactions: \n');
+    for(let i = 0; i<history.length; i++){
+        if(history[i].to === accountname){
+            console.log(' Date: ' + history[i].date + '\n From: ' + history[i].from + '\n Amount: ' + history[i].amount + '\n Narrative: ' + history[i].narrative + '\n');
+        }
+    }
+}
+
+var history = [];   // for storing transactions
 var accounts = [];
 
-// Open and read relevant file
 fs.readFile('./Transactions2014.csv', 'utf8', function (err,data) {
 
   if (err) {
@@ -77,44 +83,27 @@ fs.readFile('./Transactions2014.csv', 'utf8', function (err,data) {
 
   }
 
-  // Process all transactions
   for(let i = 0; i<history.length; i++){
       ProcessTransaction(history[i]);
   }
 
-  // Wait for commands
   var command;
   console.log('Available commands: \n 1. List All \n 2. List [Account] \n 3. Exit')
   while(command !== 'exit'){
 
-      // Ask user for input
       command = readlinesync.question('Please input command: ');
 
       if(command === 'List All'){
+
           for(let i = 0; i < accounts.length; i++){
               console.log(accounts[i].name + ': ' + accounts[i].balance);
           }
+
       }else if(command.substring(0,6) === 'List [' && command.charAt(command.length-1) === ']'){
           
-        // String to hold the account name
           let account = command.substring(6,command.length-1);
-          console.log(account);
+          listTransactions(account);
 
-          // Get and display all relevant transactions
-
-            console.log('\nOutgoing transactions: \n');
-            for(let i = 0; i<history.length; i++){
-                if(history[i].from === account){
-                    console.log(' Date: ' + history[i].date + '\n To: ' + history[i].to + '\n Amount: ' + history[i].amount + '\n Narrative: ' + history[i].narrative + '\n');
-                }
-            }
-                
-            console.log('Incoming transactions: \n');
-            for(let i = 0; i<history.length; i++){
-                if(history[i].to === account){
-                    console.log(' Date: ' + history[i].date + '\n From: ' + history[i].from + '\n Amount: ' + history[i].amount + '\n Narrative: ' + history[i].narrative + '\n');
-                }
-            }
       }else if(command !== 'exit'){
           console.log('Invalid command');
       }
