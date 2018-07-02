@@ -18,13 +18,17 @@ function getResult()
             {
                 resultHTML += '<h3>' + responseJSON[i].stopName + ' (' + responseJSON[i].distance.toFixed(0) + 'm)</h3>';
                 if(responseJSON[i].error.status === 200){
-                    resultHTML += '<ul>';
+                    resultHTML += '<table style="width:15%"><tr>';
                     let buses = responseJSON[i].buses;
+                    resultHTML += '<tr><th>Time to arrive</th><th>Bus line</th></tr>';
                     for (let j=0;j<buses.length;j++)
                     {
-                        resultHTML += '<li>' + buses[j].timeToStation + ' seconds: ' + buses[j].line + '</li>';
+                        let minutes = Math.floor(buses[j].timeToStation/60);
+                        let seconds = buses[j].timeToStation - minutes*60;
+                        seconds = (seconds<10) ? '0' + seconds.toString() : seconds.toString();
+                        resultHTML += '<tr><td>' + minutes + ':' + seconds + '</td><td>' + buses[j].line + '</td></tr>';
                     }
-                    resultHTML += '</ul>';
+                    resultHTML += '</table>';
                 } else {
                     resultHTML += '<p>' + responseJSON[i].error.message + '</p>';
                 }
