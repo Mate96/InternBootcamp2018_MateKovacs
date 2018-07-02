@@ -3,8 +3,8 @@ const request = require('request');
 const prequest = util.promisify(request);
 
 module.exports = {
-    getStop: function (location){
-                return prequest('https://api-radon.tfl.gov.uk/StopPoint?stopTypes=NaptanPublicBusCoachTram&modes=bus&lon=' + location.longitude + '&lat=' + location.latitude, { json: true });
+    getStop: function (location,radius){
+                return prequest('https://api-radon.tfl.gov.uk/StopPoint?stopTypes=NaptanPublicBusCoachTram&radius=' + radius + '&modes=bus&lon=' + location.longitude + '&lat=' + location.latitude, { json: true });
             },
     getSorted: function (res){
                     let sortedStops = res.body.stopPoints.sort(function(a,b){

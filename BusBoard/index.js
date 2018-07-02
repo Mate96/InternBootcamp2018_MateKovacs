@@ -20,7 +20,7 @@ app.get('/departureBoards/:postcode', (req, res) => {
             return {longitude: result.body.result.longitude,latitude: result.body.result.latitude};
         }
     }).then( location => {
-        return api.getStop(location);
+        return api.getStop(location,1000);
     }).then(result => {
         if (result.body.stopPoints.length === 0)
         {
