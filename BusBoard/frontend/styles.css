@@ -1,5 +1,9 @@
+table {
+    border-collapse: collapse;
+}
+
 th {
-    background-color: #20C030;
+    background-color: #2030a0;
     color: white;
 }
 
@@ -26,4 +30,19 @@ body {
     background-repeat: no-repeat;
     background-size: cover;
     background-color: #20c0f0;
+}
+
+#submit {
+    -webkit-transition-duration: 0.5s;
+    transition-duration: 0.5s;
+    background-color:#dfdfdf;
+    border: 2px solid #dfdfdf;
+    text-align: center;
+    font-family: Verdana;
+    color: #202020;
+    cursor:pointer;
+}
+
+#submit:hover {
+    backgroud-color: #20f030;
 }
