@@ -33,7 +33,9 @@ function getResult()
                     resultHTML += '<p>' + responseJSON[i].error.message + '</p>';
                 }
             }
-            document.getElementById("results").innerHTML = resultHTML;
+            let googlemap = document.getElementById("googlemap");
+            googlemap.src = "https://www.google.com/maps/embed/v1/place?q="+ responseJSON[0].stopName + "&key=AIzaSyDNpyi1hJDvYygwuJjSHuIHDfd3WyL78a4";
+            document.getElementById("results").innerHTML = resultHTML + googlemap.src;
         }
     }
     xhttp.send();
