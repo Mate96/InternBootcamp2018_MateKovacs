@@ -1,0 +1,29 @@
+th {
+    background-color: #20C030;
+    color: white;
+}
+
+tr:nth-child(even){
+    background-color: #9f9f9f;
+}
+
+tr:nth-child(odd){
+    background-color: #ffffff;
+}
+
+td {
+    padding: 10px;
+    text-align: left;
+    font-family: Verdana, sans-serif;
+}
+
+h1, h2, h3 {
+    font-family: Verdana, sans-serif;
+}
+
+body {
+    background-image: url("https://gk.news/assetalliancegroup/wp-content/uploads/sites/6/2017/08/102-011-Asset-Alliance-HCT-Group.jpg");
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-color: #20c0f0;
+}
