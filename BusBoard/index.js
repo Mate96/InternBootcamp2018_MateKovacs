@@ -29,7 +29,6 @@ app.get('/departureBoards/:postcode', (req, res) => {
         }
         let sorted = api.getSorted(result);
         Promise.all(sorted.promises).then(info => {
-            console.log(info[0].body);
             res.send(assembleResult(info, sorted.stops));
         });
     });
@@ -38,4 +37,4 @@ app.get('/departureBoards/:postcode', (req, res) => {
 
 app.use(express.static('frontend'));
 
-app.listen(3000, () => console.log('Example app listening on port 3000!'));
+app.listen(3000, () => console.log('Listening on port 3000'));
