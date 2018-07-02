@@ -29,6 +29,7 @@ app.get('/departureBoards/:postcode', (req, res) => {
         }
         let sorted = api.getSorted(result);
         Promise.all(sorted.promises).then(info => {
+            console.log(info[0].body);
             res.send(assembleResult(info, sorted.stops));
         });
     });

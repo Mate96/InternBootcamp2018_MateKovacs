@@ -17,13 +17,17 @@ function getResult()
             for (let i=0;i<responseJSON.length;i++)
             {
                 resultHTML += '<h3>' + responseJSON[i].stopName + ' (' + responseJSON[i].distance.toFixed(0) + 'm)</h3>';
-                resultHTML += '<ul>';
-                let buses = responseJSON[i].buses;
-                for (let j=0;j<buses.length;j++)
-                {
-                    resultHTML += '<li>' + buses[j].timeToStation + ' seconds: ' + buses[j].line + '</li>';
+                if(responseJSON[i].error.status === 200){
+                    resultHTML += '<ul>';
+                    let buses = responseJSON[i].buses;
+                    for (let j=0;j<buses.length;j++)
+                    {
+                        resultHTML += '<li>' + buses[j].timeToStation + ' seconds: ' + buses[j].line + '</li>';
+                    }
+                    resultHTML += '</ul>';
+                } else {
+                    resultHTML += '<p>' + responseJSON[i].error.message + '</p>';
                 }
-                resultHTML += '</ul>';
             }
             document.getElementById("results").innerHTML = resultHTML;
         }
