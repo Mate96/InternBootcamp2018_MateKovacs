@@ -12,47 +12,40 @@ class Shop {
     this.rules = this.getRules();
   }
 
+  getRules() {
+    return {
+      "default": item => {
+        item.sellIn = item.sellIn - 1;
+        item.quality = item.sellIn < 0 ? Math.max(0, item.quality - 2): Math.max(0, item.quality - 1);
+      },
+      "Aged Brie": item => {
+        item.sellIn = item.sellIn - 1;
+        item.quality = item.sellIn < 0 ? Math.min(50, item.quality + 2): Math.min(50, item.quality + 1);
+      },
+      "Backstage passes to a TAFKAL80ETC concert": item => {
+        item.sellIn = item.sellIn - 1;
+        if(item.sellIn < 0) {
+          item.quality = 0;
+        } else if(item.sellIn <= 5) {
+          item.quality = Math.min(50, item.quality + 3);
+        } else if(item.sellIn <= 10) {
+          item.quality = Math.min(50, item.quality + 2);
+        } else {
+          item.quality = Math.min(50, item.quality + 1);
+        }
+      },
+      "Sulfuras, Hand of Ragnaros": item => {}
+    };
+  }
+
   updateQuality() {
     for (var i = 0; i < this.items.length; i++) {
       let item = this.items[i];
-      let AgedBrie = item.name == 'Aged Brie';
-      let BackstagePass = item.name == 'Backstage passes to a TAFKAL80ETC concert';
-      let Sulfuras = item.name == 'Sulfuras, Hand of Ragnaros';
-
-      if(!Sulfuras){
-
-        if (!AgedBrie && !BackstagePass && item.quality > 0) {
-          item.quality -= 1;
-        } else {
-          if (item.quality < 50) {
-            item.quality += 1;
-            if (BackstagePass) {
-              if (item.sellIn < 11 && item.quality < 50) {
-                item.quality += 1;
-              }
-              if (item.sellIn < 6 && item.quality < 50) {
-                item.quality += 1;
-              }
-            }
-          }
-        }
-
-        item.sellIn -= 1;
-
-        if (item.sellIn < 0) {
-          if (!AgedBrie) {
-            if (!BackstagePass && item.quality > 0) {
-              item.quality -= 1;
-            } else {
-              item.quality = 0;
-            }
-          } else {
-            if (item.quality < 50) {
-              item.quality += 1;
-            }
-          }
-        }
-
+      let defaultKey = "default";
+      if(!!this.rules[item.name]) {
+        this.rules[item.name](item);
+      } else {
+        this.rules[defaultKey](item);
       }
     }
 
