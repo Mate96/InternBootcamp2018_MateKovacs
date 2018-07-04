@@ -9,46 +9,68 @@ class Item {
 class Shop {
   constructor(items=[]){
     this.items = items;
-    this.rules = this.getRules();
+    this.MAX_QUALITY = 50;
+    this.MIN_QUALITY = 0;
+  }
+  updateQuality(){
+    for (var i = 0; i < this.items.length; i++){
+      this.updateItem(this.items[i]);
+    }
+    return this.items
   }
 
-  getRules() {
-    return {
-      "default": item => {
-        item.sellIn = item.sellIn - 1;
-        item.quality = item.sellIn < 0 ? Math.max(0, item.quality - 2): Math.max(0, item.quality - 1);
-      },
-      "Aged Brie": item => {
-        item.sellIn = item.sellIn - 1;
-        item.quality = item.sellIn < 0 ? Math.min(50, item.quality + 2): Math.min(50, item.quality + 1);
-      },
-      "Backstage passes to a TAFKAL80ETC concert": item => {
-        item.sellIn = item.sellIn - 1;
-        if(item.sellIn < 0) {
-          item.quality = 0;
-        } else if(item.sellIn <= 5) {
-          item.quality = Math.min(50, item.quality + 3);
-        } else if(item.sellIn <= 10) {
-          item.quality = Math.min(50, item.quality + 2);
-        } else {
-          item.quality = Math.min(50, item.quality + 1);
-        }
-      },
-      "Sulfuras, Hand of Ragnaros": item => {}
-    };
-  }
-
-  updateQuality() {
-    for (var i = 0; i < this.items.length; i++) {
-      let item = this.items[i];
-      let defaultKey = "default";
-      if(!!this.rules[item.name]) {
-        this.rules[item.name](item);
-      } else {
-        this.rules[defaultKey](item);
-      }
+  updateItem(item) {
+    let flags = {
+      isConjured: item.name.includes("Conjured"),
+      isSulfuras: item.name === "Sulfuras, Hand of Ragnaros",
+      isBackstagePass: item.name.includes("Backstage pass"),
+      isAgedBrie: item.name.includes("Aged Brie")
     }
 
-    return this.items;
+    if(flags.isSulfuras){
+      return;
+    }
+
+    item.sellIn -= 1;
+    this.updateItemQuality(item,flags);
+  }
+
+  updateItemQuality(item, flags){
+    let amount = this.calculateDefaultDepreciation(item.sellIn);
+    
+    if(flags.isAgedBrie){
+      amount = -amount;
+    }
+
+    if(flags.isBackstagePass){
+      amount = this.calculateBackstagePassDepreciation(item.sellIn);
+    }
+
+    item.quality = this.calculateNewQuality(item.quality, amount, flags.isConjured);
+  }
+
+  calculateDefaultDepreciation(sellIn) {
+    return sellIn >= 0 ? -1 : -2;
+  }
+
+  calculateBackstagePassDepreciation(sellIn) {
+    let amount;
+    if(sellIn < 0){
+      //makes quality 0
+      amount = -this.MAX_QUALITY;
+    } else if(sellIn <= 5){
+      amount = 3;
+    } else if(sellIn <= 10){
+      amount = 2;
+    } else {
+      amount = 1;
+    }
+
+    return amount;
+  }
+
+  calculateNewQuality(quality,amount,isConjured){
+    let multiplier = isConjured ? 2 : 1;
+    return Math.max(this.MIN_QUALITY, Math.min(this.MAX_QUALITY, quality + multiplier*amount));
   }
 }
