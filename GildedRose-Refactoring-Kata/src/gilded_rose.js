@@ -9,9 +9,10 @@ class Item {
 class Shop {
   constructor(items=[]){
     this.items = items;
+    this.rules = this.getRules();
   }
-  updateQuality() {
 
+  updateQuality() {
     for (var i = 0; i < this.items.length; i++) {
       let item = this.items[i];
       let AgedBrie = item.name == 'Aged Brie';
@@ -19,7 +20,7 @@ class Shop {
       let Sulfuras = item.name == 'Sulfuras, Hand of Ragnaros';
 
       if(!Sulfuras){
-        
+
         if (!AgedBrie && !BackstagePass && item.quality > 0) {
           item.quality -= 1;
         } else {
